@@ -1,0 +1,12 @@
+---
+
+- name: "{{ ansible_facts['distribution'] }} - Checking if {{ item }} exits."
+  ansible.builtin.stat: 
+    path: "{{ item }}"
+  register: file
+
+- name: "{{ ansible_facts['distribution'] }} - Cleaning {{ item }}."
+  ansible.builtin.copy:
+    content: ''
+    dest: "{{ item }}"
+  when: file.stat.exists
