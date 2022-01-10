@@ -48,7 +48,7 @@ locals {
 
 source "parallels-iso" "fedora35" {
   // Virtual Machine Settings
-  guest_os_type        = var.vm_guest_os_type
+  guest_os_type        = var.prl_guest_os_type
   vm_name              = "${var.vm_guest_os_name}-${var.vm_guest_os_version}"
   cpus                 = var.vm_cpus
   memory               = var.vm_mem_size

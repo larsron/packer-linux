@@ -81,36 +81,43 @@ variable "prl_parallels_prlctl" {
 variable "qemu_machine_type" {
   type        = string
   description = "The type of machine emulation to use."
+  default     = "q35"
 }
 
 variable "qemu_format" {
   type        = string
   description = "The output format of the virtual machine image."
+  default     = "qcow2"
 }
 
 variable "qemu_accelerator" {
   type        = string
   description = "The accelerator type to use when running the VM."
+  default     = "kvm"
 }
 
 variable "qemu_net_device" {
   type        = string
   description = "The driver to use for the network interface."
+  default     = "virtio-net"
 }
 
 variable "qemu_disk_interface" {
   type        = string
   description = "The interface to use for the disk."
+  default     = "virtio"
 }
 
 variable "qemu_disk_cache" {
   type        = string
   description = "The cache mode to use for disk."
+  default     = "unsafe"
 }
 
 variable "qemu_disk_discard" {
   type        = string
   description = "The discard mode to use for disk."
+  default     = "unmap"
 }
 
 variable "qemu_headless" {
