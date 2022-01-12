@@ -28,6 +28,7 @@
   ansible.builtin.dnf:
     name:
       - "{{ ansible_distribution|lower }}-gpg-keys"
+      - tar
     state: latest
 
 - name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - workaround - mask cloud-init services"
