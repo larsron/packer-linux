@@ -1,14 +1,14 @@
 /*
     DESCRIPTION:
-    Fedora 35 variables used by Packer.
+    Rocky Linux 8 variables used by Packer.
 */
 
 // Guest Operating System Metadata
 vm_guest_os_language = "en_US"
 vm_guest_os_keyboard = "us"
 vm_guest_os_timezone = "UTC"
-vm_guest_os_name     = "fedora"
-vm_guest_os_version  = "35"
+vm_guest_os_name     = "rockylinux"
+vm_guest_os_version  = "8"
 
 // Virtual Machine Hardware Settings
 vm_cpus                  = 1
@@ -16,11 +16,11 @@ vm_mem_size              = 2048
 vm_disk_size             = 20480
 
 // Parallels Settings
-prl_guest_os_type     = "fedora-core"
+prl_guest_os_type     = "centos"
 
 // Media Settings
-iso_url       = "https://dl.fedoraproject.org/pub/fedora/linux/releases/35/Server/x86_64/iso/Fedora-Server-netinst-x86_64-35-1.2.iso"
-iso_checksum  = "dd35f955dd5a7054213a0098c6ee737ff116aa3090fc6dbfe89d424b5c3552dd"
+iso_url       = "https://download.rockylinux.org/pub/rocky/8/isos/x86_64/Rocky-8.5-x86_64-boot.iso"
+iso_checksum  = "5a0dc65d1308e47b51a49e23f1030b5ee0f0ece3702483a8a6554382e893333c"
 
 // Boot Settings
 vm_boot_wait  = "2s"

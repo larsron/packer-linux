@@ -1,0 +1,126 @@
+---
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+# WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+### RedHat Sysprep
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - set variables"
+  set_fact:
+    audit_logs:
+      - /var/log/audit/audit.log
+      - /var/log/wtmp
+      - /var/log/lastlog
+    tmp_dirs:
+      - "/tmp"
+      - "/var/tmp"
+      - "/var/cache/dnf"
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - updating the guest operating system"
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    update_cache: yes
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - installing additional packages"
+  ansible.builtin.dnf:
+    name:
+      - "{{ ansible_distribution|lower }}-gpg-keys"
+    state: latest
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - workaround - mask cloud-init services"
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    masked: yes
+  with_items:
+    - cloud-init
+    - cloud-init-local
+    - cloud-config
+    - cloud-final
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - remove the linux-firmware package"
+  ansible.builtin.dnf:
+    name: linux-firmware
+    state: absent
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - cleaning all audit logs"
+  include_tasks: clean_audit_logs.yml
+  loop: "{{ audit_logs }}"
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - cleaning persistent udev rules"
+  ansible.builtin.file:
+    path: /etc/udev/rules.d/70-persistent-net.rules
+    state: absent
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - cleaning temporary directories"
+  include_tasks: clean_tmp_dirs.yml
+  loop: "{{ tmp_dirs }}"
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - cleaning dnf cache"
+  ansible.builtin.command: /usr/bin/dnf clean all
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - cleaning the SSH keys"
+  block:
+    - ansible.builtin.find:
+        paths: "/etc/ssh"
+        patterns: "ssh_host_*"
+        file_type: file
+      register: ssh_keys
+    - ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items: >
+        {{
+          ssh_keys.files
+        }}
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - setting the hostname to localhost"
+  ansible.builtin.hostname:
+    name: localhost
+    use: systemd
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - cleaning dnf cache files"
+  ansible.builtin.file:
+    path: "/var/cache/{{ item }}"
+    state: absent
+  with_items:
+    - dnf
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - cleaning the machine-id"
+  block:
+    - ansible.builtin.file:
+        path: /etc/machine-id
+        state: absent
+    - ansible.builtin.file:
+        path: /var/lib/dbus/machine-id
+        state: absent
+    - ansible.builtin.command: systemd-machine-id-setup
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - removing random-seed"
+  ansible.builtin.file:
+    path: /var/lib/systemd/random-seed
+    state: absent
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - cleaning leftover networking configurations"
+  block:
+    - ansible.builtin.find:
+        paths: "/etc/NetworkManager/system-connections"
+        patterns: "*.nmconnection"
+        file_type: file
+      register: net_connections
+    - ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items: >
+        {{
+          net_connections.files
+        }}
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - write zero to empty disk area"
+  block:
+    - ansible.builtin.raw: dd if=/dev/zero of=/EMPTY bs=1M
+      ignore_errors: true
+    - ansible.builtin.raw: rm -f /EMPTY
+    - ansible.builtin.raw: sync

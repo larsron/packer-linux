@@ -1,0 +1,28 @@
+---
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - removing {{ item }}"
+  block:
+    - ansible.builtin.find:
+        paths: "{{ item }}"
+        hidden: true
+        recurse: true
+        patterns: "*"
+        file_type: any
+      register: files
+    - ansible.builtin.find:
+        paths: "{{ item }}"
+        hidden: true
+        recurse: true
+        patterns: "*"
+        file_type: directory
+      register: directories
+    - ansible.builtin.file:
+        path: "{{ tmp_item }}"
+        state: absent
+      with_items: >
+        {{
+          files.files
+          + directories.files
+        }}
+      loop_control:
+        loop_var: tmp_item

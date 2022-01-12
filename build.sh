@@ -84,6 +84,69 @@ menu_option_2() {
   echo "Done."
 }
 
+menu_option_3() {
+  INPUT_PATH="$SCRIPT_PATH"/builds/rocky8/
+  echo -e "\nCONFIRM: Build a Rocky Linux 8 Template for Parallels?"
+  echo -e "\nContinue? (y/n)"
+  read -r REPLY
+  if [[ ! $REPLY =~ ^[Yy]$ ]]
+  then
+    exit 1
+  fi
+
+  ### Build a Rocky Linux 8 Template for Parallels. ###
+  echo "Building a Rocky Linux 8 Template for Parallels..."
+
+  ### Initialize HashiCorp Packer and required plugins. ###
+  echo "Initializing HashiCorp Packer and required plugins..."
+  packer init "$INPUT_PATH"
+
+  ### Start the HashiCorp Packer Build ###
+  echo "Starting the HashiCorp Packer build..."
+  PKR_VAR_VAGRANT_BOX_PATH=$VAGRANT_BOX_PATH \
+  packer build -only=parallels-iso.* -force \
+      -var-file="$CONFIG_PATH/parallels.pkrvars.hcl" \
+      -var-file="$CONFIG_PATH/build.pkrvars.hcl" \
+      -var-file="$CONFIG_PATH/common.pkrvars.hcl" \
+      -var-file="$CONFIG_PATH/ansible.pkrvars.hcl" \
+      "$INPUT_PATH"
+
+  ### All done. ###
+  echo "Done."
+}
+
+menu_option_4() {
+  INPUT_PATH="$SCRIPT_PATH"/builds/rocky8/
+  echo -e "\nCONFIRM: Build a Rocky Linux 8 Template for QEMU?"
+  echo -e "\nContinue? (y/n)"
+  read -r REPLY
+  if [[ ! $REPLY =~ ^[Yy]$ ]]
+  then
+    exit 1
+  fi
+
+  ### Build a Rocky Linux 8 Template for QEMU. ###
+  echo "Building a Rocky Linux 8 Template for QEMU..."
+
+  ### Initialize HashiCorp Packer and required plugins. ###
+  echo "Initializing HashiCorp Packer and required plugins..."
+  packer init "$INPUT_PATH"
+
+  ### Start the HashiCorp Packer Build ###
+  echo "Starting the HashiCorp Packer build..."
+  PKR_VAR_VAGRANT_BOX_PATH=$VAGRANT_BOX_PATH \
+  packer build -only=qemu.* -force \
+      -var-file="$CONFIG_PATH/qemu.pkrvars.hcl" \
+      -var-file="$CONFIG_PATH/build.pkrvars.hcl" \
+      -var-file="$CONFIG_PATH/common.pkrvars.hcl" \
+      -var-file="$CONFIG_PATH/ansible.pkrvars.hcl" \
+      "$INPUT_PATH"
+
+  ### All done. ###
+  echo "Done."
+}
+
+
 press_enter() {
   cd "$SCRIPT_PATH"
   echo -n "Press Enter to continue."
@@ -104,6 +167,8 @@ until [ "$selection" = "0" ]; do
   echo ""
   echo "    	 1  -  Fedora 35 (Parallels)"
   echo "    	 2  -  Fedora 35 (QEMU)"
+  echo "    	 3  -  Rocky Linux 8 (Parallels)"
+  echo "    	 4  -  Rocky Linux 8 (QEMU)"
   echo ""
   echo "      Other:"
   echo ""
@@ -114,6 +179,8 @@ until [ "$selection" = "0" ]; do
   case $selection in
     1 ) clear ; menu_option_1 ; press_enter ;;
     2 ) clear ; menu_option_2 ; press_enter ;;
+    3 ) clear ; menu_option_3 ; press_enter ;;
+    4 ) clear ; menu_option_4 ; press_enter ;;
     Q ) clear ; exit ;;
     * ) clear ; incorrect_selection ; press_enter ;;
   esac

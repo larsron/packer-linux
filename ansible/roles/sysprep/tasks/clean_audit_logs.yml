@@ -1,0 +1,11 @@
+---
+
+- name: "{{ ansible_distribution }} {{ ansible_distribution_major_version }} - removing {{ item }}"
+  block:
+    - ansible.builtin.stat: 
+        path: "{{ item }}"
+      register: file
+    - ansible.builtin.copy:
+        content: ''
+        dest: "{{ item }}"
+      when: file.stat.exists
